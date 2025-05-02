@@ -1,6 +1,13 @@
 #include <stdio.h>
 
-int main(void) {
-    printf("Hello nobby world!\n");
+#define NOB_IMPLEMENTATION
+#define NOB_STRIP_PREFIX
+#include "nob.h"
+
+
+int main(int argc, char **argv) {
+    const char *program_name = shift(argv, argc);
+    printf("Hello nobby world! From %s\n", program_name);
+
     return 0;
 }
