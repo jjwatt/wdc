@@ -70,6 +70,8 @@ Bookmarks get_bookmarks() {
 
     char line[MAX_LINE_LENGTH];
     while (fgets(line, sizeof(line), bookmark_file) != NULL) {
+	// Find the location of the first occurrence of newline,
+	// And replace it with NULL terminator.
 	line[strcspn(line, "\n")] = 0;
 	char *bookmark = strdup(line);
 	if (bookmark == NULL) {
@@ -82,16 +84,71 @@ Bookmarks get_bookmarks() {
     return bookmarks;
 }
 
-int list_bookmarks() {
+/**
+ * @brief Get bookmarks in reverse order
+ *
+ * This will get them in the order added to the file
+ */
+Bookmarks get_bookmarks_reversed() {
     Bookmarks bookmarks = get_bookmarks();
-    for (int i = bookmarks.count - 1; i >= 0; i--) {
+    // If there's none or one just return that.
+    if (bookmarks.items == NULL || bookmarks.count <= 1) {
+	return bookmarks;
+    }
+
+    // Reverse the list.
+    // Left side.
+    size_t i = 0;
+    // Rigth side.
+    size_t j = bookmarks.count - 1;
+    while (i < j) {
+	// Swap items[i] and items[j]
+	char *tmp = bookmarks.items[i];
+	bookmarks.items[i] = bookmarks.items[j];
+	bookmarks.items[j] = tmp;
+	i++;
+	j--;
+    }
+    return bookmarks;
+}
+
+/**
+   @brief Print bookmarks in reverse order
+*/
+int list_bookmarks() {
+    Bookmarks bookmarks = get_bookmarks_reversed();
+    for (size_t i = 0; i < bookmarks.count; i++) {
 	printf("%s\n", bookmarks.items[i]);
+        // free items[i]. rn we're leaking memory probably.
     }
     da_free(bookmarks);
     return 0;
 }
 
+char *find(const char *name) {
+    // Search from the bottom. So, it's the last one added.
+    Bookmarks bookmarks = get_bookmarks_reversed();
+    char *found_path = NULL;
+
+    // Simple linear search. Items can repeat. We get the last one added.
+    for (size_t i = 0; i < bookmarks.count; i++) {
+	char *entry = bookmarks.items[i];
+	char *delimiter = strstr(entry, DELIM);
+	if (delimiter != NULL) {
+	    size_t name_len = delimiter - entry;
+	    if (strncmp(entry, name, name_len) == 0 && name_len == strlen(name)) {
+		found_path = strdup(delimiter + strlen(DELIM));
+		break;
+	    }
+	}
+    }
+    // TODO: free items[i], free bookmarks
+    return found_path;
+}
+
 int main(int argc, char **argv) {
+    char *find_name = NULL;
+
     int opt;
     opterr = 0;
 
@@ -120,6 +177,24 @@ int main(int argc, char **argv) {
 	    print_usage(argv[0]);
 	    return 1;
 	}
+    }
+
+    /* Check for non-option arguments after getopt_long */
+    if (optind < argc) {
+	find_name = argv[optind];
+    }
+    if (find_name != NULL) {
+	char *path = find(find_name);
+	if (path != NULL) {
+	    printf("%s\n", path);
+	    free(path);
+	} else {
+	    // TODO: Maybe don't print anything
+	    printf("Bookmark '%s' not found\n", find_name);
+	    return 1;
+	}
+    } else if (argc == 1) {
+	print_usage(argv[0]);
     }
     return 0;
 }
