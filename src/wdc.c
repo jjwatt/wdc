@@ -11,6 +11,14 @@
 
 #define DELIM "|"
 #define BM_FILENAME ".wdc"
+#define MAX_LINE_LENGTH (PATH_MAX + 50)
+
+typedef struct {
+    char **items;
+    size_t count;
+    size_t capacity;
+} Bookmarks;
+
 
 void print_usage(const char *program_name) {
     fprintf(stderr, "Usage: %s [OPTIONS] <filename>\n", program_name);
@@ -20,8 +28,19 @@ void print_usage(const char *program_name) {
     fprintf(stderr, "  -a, --add [name]    Add current directory with name\n");
 }
 
+FILE *open_bookmark_file(const char *mode) {
+    char bookmark_path[PATH_MAX];
+    snprintf(bookmark_path, sizeof(bookmark_path), "%s/%s", getenv("HOME"), BM_FILENAME);
+    FILE *bookmark_file = fopen(bookmark_path, mode);
+    if (bookmark_file == NULL) {
+	fprintf(stderr, "Error: Could not open bookmarks file '%s'.\n", bookmark_path);
+    }
+    return bookmark_file;
+
+}
+
 void add_to_file(const char *name, const char *cwd_path, FILE *bookmark_file) {
-    fprintf(bookmark_file, "%s|%s\n", name, cwd_path);
+    fprintf(bookmark_file, "%s%s%s\n", name, DELIM, cwd_path);
 }
 
 int add(const char *name) {
@@ -30,17 +49,45 @@ int add(const char *name) {
 	perror("Error getting current directory");
 	return 1;
     }
-    char bookmark_path[PATH_MAX];
-    snprintf(bookmark_path, sizeof(bookmark_path), "%s/.wdc", getenv("HOME"));
 
-    FILE *bookmark_file = fopen(bookmark_path, "a");
+    FILE *bookmark_file = open_bookmark_file("a");
     if (bookmark_file == NULL) {
-	fprintf(stderr, "Error: Could not open bookmarks file '%s' for writing.\n", bookmark_path);
 	return 1;
     }
 
     add_to_file(name, cwd, bookmark_file);
     fclose(bookmark_file);
+    return 0;
+}
+
+Bookmarks get_bookmarks() {
+    Bookmarks bookmarks = {0};
+
+    FILE *bookmark_file = open_bookmark_file("r");
+    if (bookmark_file == NULL) {
+	return bookmarks;
+    }
+
+    char line[MAX_LINE_LENGTH];
+    while (fgets(line, sizeof(line), bookmark_file) != NULL) {
+	line[strcspn(line, "\n")] = 0;
+	char *bookmark = strdup(line);
+	if (bookmark == NULL) {
+	    perror("strdup() failed");
+	    break;
+	}
+	da_append(&bookmarks, bookmark);
+    }
+    fclose(bookmark_file);
+    return bookmarks;
+}
+
+int list_bookmarks() {
+    Bookmarks bookmarks = get_bookmarks();
+    for (int i = bookmarks.count - 1; i >= 0; i--) {
+	printf("%s\n", bookmarks.items[i]);
+    }
+    da_free(bookmarks);
     return 0;
 }
 
@@ -63,8 +110,7 @@ int main(int argc, char **argv) {
 	    print_usage(argv[0]);
 	    return 0;
 	case 'l':
-	    printf("TODO\n");
-	    return 0;
+	    return list_bookmarks();
 	case 'a':
 	    if (add(optarg) != 0) {
 		return 1;
