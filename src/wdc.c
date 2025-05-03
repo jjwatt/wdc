@@ -14,7 +14,7 @@
 #define MAX_LINE_LENGTH (PATH_MAX + 50)
 
 typedef struct {
-    String_Builder *items;
+    char **items;
     size_t count;
     size_t capacity;
 } Bookmarks;
@@ -60,8 +60,6 @@ int add(const char *name) {
     return 0;
 }
 
-#if 0
-
 Bookmarks get_bookmarks_nob() {
     Bookmarks bookmarks = {0};
     Nob_String_Builder sb = {0};
@@ -105,8 +103,8 @@ Bookmarks get_bookmarks_nob() {
     sb_free(sb);
     return bookmarks;
 }
-#endif
 
+#if 0
 Bookmarks get_bookmarks_nob2() {
     Bookmarks bookmarks = {0};
     String_Builder file_chars = {0};
@@ -149,8 +147,7 @@ Bookmarks get_bookmarks_nob2() {
     sb_free(file_chars);
     return bookmarks;
 }
-
-#if 0
+#endif
 Bookmarks get_bookmarks() {
     Bookmarks bookmarks = {0};
 
@@ -174,16 +171,15 @@ Bookmarks get_bookmarks() {
     fclose(bookmark_file);
     return bookmarks;
 }
-#endif
 
-#if 0
+
 /**
  * @brief Get bookmarks in reverse order
  *
  * This will get them in the order added to the file
  */
 Bookmarks get_bookmarks_reversed() {
-    Bookmarks bookmarks = get_bookmarks_nob2();
+    Bookmarks bookmarks = get_bookmarks_nob();
     // If there's none or one just return that.
     if (bookmarks.items == NULL || bookmarks.count <= 1) {
 	return bookmarks;
@@ -204,36 +200,6 @@ Bookmarks get_bookmarks_reversed() {
     }
     return bookmarks;
 }
-#endif
-
-/**
- * @brief Get bookmarks in reverse order
- *
- * This will get them in the order added to the file
- */
-Bookmarks get_bookmarks_reversed() {
-    Bookmarks bookmarks = get_bookmarks_nob2();
-    // If there's none or one just return that.
-    if (bookmarks.items == NULL || bookmarks.count <= 1) {
-	return bookmarks;
-    }
-
-    // Reverse the list.
-    // Left side.
-    size_t i = 0;
-    // Rigth side.
-    size_t j = bookmarks.count - 1;
-    while (i < j) {
-	// Swap items[i] and items[j]
-	String_Builder tmp = bookmarks.items[i];
-	bookmarks.items[i] = bookmarks.items[j];
-	bookmarks.items[j] = tmp;
-	i++;
-	j--;
-    }
-    return bookmarks;
-}
-
 
 /**
    @brief Print bookmarks in reverse order
