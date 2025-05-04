@@ -5,11 +5,12 @@
 #include <getopt.h>
 #include <limits.h>
 
+#include "wdc.h"
+
 #define NOB_IMPLEMENTATION
 #define NOB_STRIP_PREFIX
 #include "nob.h"
 
-#include "wdc.h"
 
 FILE *open_bookmark_file(const char *mode) {
     char bookmark_path[PATH_MAX];
