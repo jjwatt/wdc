@@ -14,7 +14,7 @@
 #define MAX_LINE_LENGTH (PATH_MAX + 50)
 
 typedef struct {
-    char **items;
+    String_Builder *items;
     size_t count;
     size_t capacity;
 } Bookmarks;
@@ -60,52 +60,8 @@ int add(const char *name) {
     return 0;
 }
 
-Bookmarks get_bookmarks_nob() {
-    Bookmarks bookmarks = {0};
-    Nob_String_Builder sb = {0};
 
-    char bookmark_path[PATH_MAX];
-    snprintf(bookmark_path, sizeof(bookmark_path),
-	     "%s/%s", getenv("HOME"), BM_FILENAME);
-
-    if (nob_read_entire_file(bookmark_path, &sb)) {
-	char *current_pos = sb.items;
-	char *line_start = sb.items;
-
-	while (current_pos < sb.items + sb.count) {
-	    if (*current_pos == '\n') {
-		size_t line_len = current_pos - line_start;
-		char *line = malloc(line_len + 1);
-		if (line == NULL) {
-		    perror("malloc failed.");
-		    break;
-		}
-		strncpy(line, line_start, line_len);
-		line[line_len] = '\0';
-		da_append(&bookmarks, line);
-		line_start = current_pos + 1;
-	    }
-	    current_pos++;
-	}
-	// Handle the last line if it doesn't end with a newline
-	if (line_start < sb.items + sb.count) {
-	    size_t line_len = (sb.items + sb.count) - line_start;
-	    char *line = malloc(line_len + 1);
-	    if (line == NULL) {
-		perror("malloc failed");
-	    } else {
-		strncpy(line, line_start, line_len);
-		line[line_len] = '\0';
-		da_append(&bookmarks, line);
-	    }
-	}
-    }
-    sb_free(sb);
-    return bookmarks;
-}
-
-#if 0
-Bookmarks get_bookmarks_nob2() {
+Bookmarks get_bookmarks() {
     Bookmarks bookmarks = {0};
     String_Builder file_chars = {0};
 
@@ -121,11 +77,11 @@ Bookmarks get_bookmarks_nob2() {
 	while (current_pos < file_chars.items + file_chars.count) {
 	    if (*current_pos == '\n') {
 		String_Builder line_sb = {0};
-		// The size is where we are at '\n' back to the start of the line.
+		// The size is where we are at, '\n', back to the start of the line.
 		size_t line_len = current_pos - line_start;
 		// Add from start to '\n' to the line_sb.
 		sb_append_buf(&line_sb, line_start, line_len);
-		// Add null to make it a cstr
+		// Add null to make it a cstr.
 		sb_append_null(&line_sb);
 		// Append the line to the list of bookmarks.
 		da_append(&bookmarks, line_sb);
@@ -147,31 +103,6 @@ Bookmarks get_bookmarks_nob2() {
     sb_free(file_chars);
     return bookmarks;
 }
-#endif
-Bookmarks get_bookmarks() {
-    Bookmarks bookmarks = {0};
-
-    FILE *bookmark_file = open_bookmark_file("r");
-    if (bookmark_file == NULL) {
-	return bookmarks;
-    }
-
-    char line[MAX_LINE_LENGTH];
-    while (fgets(line, sizeof(line), bookmark_file) != NULL) {
-	// Find the location of the first occurrence of newline,
-	// And replace it with NULL terminator.
-	line[strcspn(line, "\n")] = 0;
-	char *bookmark = strdup(line);
-	if (bookmark == NULL) {
-	    perror("strdup() failed");
-	    break;
-	}
-	da_append(&bookmarks, bookmark);
-    }
-    fclose(bookmark_file);
-    return bookmarks;
-}
-
 
 /**
  * @brief Get bookmarks in reverse order
@@ -179,7 +110,7 @@ Bookmarks get_bookmarks() {
  * This will get them in the order added to the file
  */
 Bookmarks get_bookmarks_reversed() {
-    Bookmarks bookmarks = get_bookmarks_nob();
+    Bookmarks bookmarks = get_bookmarks();
     // If there's none or one just return that.
     if (bookmarks.items == NULL || bookmarks.count <= 1) {
 	return bookmarks;
@@ -192,7 +123,7 @@ Bookmarks get_bookmarks_reversed() {
     size_t j = bookmarks.count - 1;
     while (i < j) {
 	// Swap items[i] and items[j]
-	char *tmp = bookmarks.items[i];
+	String_Builder tmp = bookmarks.items[i];
 	bookmarks.items[i] = bookmarks.items[j];
 	bookmarks.items[j] = tmp;
 	i++;
@@ -207,8 +138,8 @@ Bookmarks get_bookmarks_reversed() {
 int list_bookmarks() {
     Bookmarks bookmarks = get_bookmarks_reversed();
     for (size_t i = 0; i < bookmarks.count; i++) {
-	printf("%s\n", bookmarks.items[i]);
-        // free items[i]. rn we're leaking memory probably.
+	printf("%s\n", bookmarks.items[i].items);
+	sb_free(bookmarks.items[i]);
     }
     da_free(bookmarks);
     return 0;
@@ -221,7 +152,8 @@ char *find(const char *name) {
 
     // Simple linear search. Items can repeat. We get the last one added.
     for (size_t i = 0; i < bookmarks.count; i++) {
-	char *entry = bookmarks.items[i];
+	String_Builder entry_sb = bookmarks.items[i];
+	char *entry = entry_sb.items;
 	char *delimiter = strstr(entry, DELIM);
 	if (delimiter != NULL) {
 	    size_t name_len = delimiter - entry;
@@ -230,8 +162,8 @@ char *find(const char *name) {
 		break;
 	    }
 	}
+	sb_free(entry_sb);
     }
-    // TODO: free items[i]?
     da_free(bookmarks);
     return found_path;
 }
