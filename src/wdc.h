@@ -1,7 +1,6 @@
 #ifndef WDC_H
 #define WDC_H
 
-#define NOB_STRIP_PREFIX
 #include "nob.h"
 
 #define DELIM "|"
@@ -9,7 +8,7 @@
 #define MAX_LINE_LENGTH (PATH_MAX + 50)
 
 typedef struct {
-    String_Builder *items;
+    Nob_String_Builder *items;
     size_t count;
     size_t capacity;
 } Bookmarks;
