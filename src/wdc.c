@@ -89,49 +89,6 @@ Bookmarks get_bookmarks(void) {
     return bookmarks;
 }
 
-Bookmarks get_bookmarks_orig(void) {
-    Bookmarks bookmarks = {0};
-    Nob_String_Builder file_chars = {0};
-
-    char bookmark_path[PATH_MAX];
-    snprintf(bookmark_path, sizeof(bookmark_path),
-	     "%s/%s", getenv("HOME"), BM_FILENAME);
-
-    // nob_nob_read_entire_file will read the file into one long string builder.
-    if (nob_read_entire_file(bookmark_path, &file_chars)) {
-	char *current_pos = file_chars.items;
-	char *line_start = file_chars.items;
-
-	while (current_pos < file_chars.items + file_chars.count) {
-	    if (*current_pos == '\n') {
-		Nob_String_Builder line_sb = {0};
-		// The size is where we are at, '\n', back to the start of the line.
-		size_t line_len = current_pos - line_start;
-		// Add from start to '\n' to the line_sb.
-		nob_sb_append_buf(&line_sb, line_start, line_len);
-		// Add null to make it a cstr.
-		nob_sb_append_null(&line_sb);
-		// Append the line to the list of bookmarks.
-		nob_da_append(&bookmarks, line_sb);
-		line_start = current_pos + 1;
-	    }
-	    current_pos++;
-	}
-	// Handle the last line/rest of the data if it doesn't end with a newline
-	// If the start of the line is still less than the total size of the file
-	// (there's still more data to read).
-	if (line_start < file_chars.items + file_chars.count) {
-	    Nob_String_Builder line_sb = {0};
-	    size_t line_len = (file_chars.items + file_chars.count) - line_start;
-	    nob_sb_append_buf(&line_sb, line_start, line_len);
-	    nob_sb_append_null(&line_sb);
-	    nob_da_append(&bookmarks, line_sb);
-	}
-    }
-    nob_sb_free(file_chars);
-    return bookmarks;
-}
-
 /**
  * @brief Get bookmarks in reverse order
  *
