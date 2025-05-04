@@ -21,7 +21,7 @@ typedef struct {
 
 
 void print_usage(const char *program_name) {
-    fprintf(stderr, "Usage: %s [OPTIONS] <filename>\n", program_name);
+    fprintf(stderr, "Usage: %s [OPTIONS]\n", program_name);
     fprintf(stderr, "Options:\n");
     fprintf(stderr, "  -h, --help          Show this help message and exit\n");
     fprintf(stderr, "  -l, --list          List bookmarks\n");
