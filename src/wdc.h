@@ -1,5 +1,8 @@
-#ifndef WDC_H_
-#define WDC_H_
+#ifndef WDC_H
+#define WDC_H
+
+#define NOB_STRIP_PREFIX
+#include "nob.h"
 
 #define DELIM "|"
 #define BM_FILENAME ".wdc"

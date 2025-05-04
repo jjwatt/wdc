@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <getopt.h>
 
-#define NOB_STRIP_PREFIX
-#include "nob.h"
 #include "wdc.h"
 
 void print_usage(const char *program_name) {
