@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 #include <getopt.h>
-#include <limits.h>
+
+#define NOB_STRIP_PREFIX
+#include "nob.h"
+#include "wdc.h"
 
 void print_usage(const char *program_name) {
     fprintf(stderr, "Usage: %s [OPTIONS]\n", program_name);
