@@ -39,10 +39,23 @@ FILE *open_bookmark_file(const char *mode) {
 
 }
 
+/**
+ * @brief Add the name and path to the file as a bookmark.
+ *
+ * @param name: The bookmark name.
+ * @param cwd_path: The path to add under bookmark name.
+ * @param bookmark_file: The file to append the bookmark to.
+ */
 void add_to_file(const char *name, const char *cwd_path, FILE *bookmark_file) {
     fprintf(bookmark_file, "%s%s%s\n", name, DELIM, cwd_path);
 }
 
+/**
+ * @brief Add a bookmark to the bookmarks file.
+ *
+ * Append bookmark and path to the end of the bookmarks file.
+ * @param name: The name of the bookmark.
+ */
 int add(const char *name) {
     char cwd[PATH_MAX];
     if (getcwd(cwd, sizeof(cwd)) == NULL) {
@@ -61,6 +74,13 @@ int add(const char *name) {
 }
 
 
+/**
+ * @brief Get bookmarks
+ *
+ * Read the file and return the list of lines in the file.
+ *
+ * @return Bookmarks All the bookmarks from the file.
+ */
 Bookmarks get_bookmarks() {
     Bookmarks bookmarks = {0};
     String_Builder file_chars = {0};
@@ -70,7 +90,7 @@ Bookmarks get_bookmarks() {
 	     "%s/%s", getenv("HOME"), BM_FILENAME);
 
     // nob_read_entire_file will read the file into one long string builder.
-    if (nob_read_entire_file(bookmark_path, &file_chars)) {
+    if (read_entire_file(bookmark_path, &file_chars)) {
 	char *current_pos = file_chars.items;
 	char *line_start = file_chars.items;
 
@@ -107,7 +127,9 @@ Bookmarks get_bookmarks() {
 /**
  * @brief Get bookmarks in reverse order
  *
- * This will get them in the order added to the file
+ * This will get them in the order added to the file.
+ *
+ * @return Bookmarks, the list of bookmarks in reverse order.
  */
 Bookmarks get_bookmarks_reversed() {
     Bookmarks bookmarks = get_bookmarks();
@@ -133,7 +155,7 @@ Bookmarks get_bookmarks_reversed() {
 }
 
 /**
-   @brief Print bookmarks in reverse order
+ * @brief Print bookmarks in reverse order
 */
 int list_bookmarks() {
     Bookmarks bookmarks = get_bookmarks_reversed();
@@ -145,6 +167,15 @@ int list_bookmarks() {
     return 0;
 }
 
+/**
+ * @brief Find an exact match for name and return it.
+ *
+ * Search through bookmarks and return the first exact match for name.
+ *
+ * @param name The name to search for.
+ *
+ * @return The matching name|path in the file.
+ */
 char *find(const char *name) {
     // Search from the bottom. So, it's the last one added.
     Bookmarks bookmarks = get_bookmarks_reversed();
