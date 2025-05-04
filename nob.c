@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
     if (!nob_mkdir_if_not_exists(BUILD_FOLDER)) return 1;
 
     Nob_Cmd cmd = {0};
-    nob_cmd_append(&cmd, "cc", "-Wall", "-Wextra", "-o", BUILD_FOLDER"wdc", SRC_FOLDER"wdc.c");
+    nob_cmd_append(&cmd, "cc", "-Wall", "-Wextra", "-o", BUILD_FOLDER"wdc", SRC_FOLDER"wdc.c", SRC_FOLDER"main.c");
     if (!nob_cmd_run_sync(cmd)) return 1;
     return 0;
 }
