@@ -1,6 +1,7 @@
 #ifndef WDC_H
 #define WDC_H
 
+#include <limits.h>
 #include "nob.h"
 
 #define DELIM "|"
