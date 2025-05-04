@@ -31,24 +31,15 @@ int main(void) {
     while (content.count > 0) {
 	Nob_String_Builder bookmark = {0};
 	Nob_String_View line = nob_sv_chop_by_delim(&content, '\n');
-	nob_log(NOB_INFO, "`"SV_Fmt"`", SV_Arg(line));
-	nob_log(NOB_INFO, "%zu\n", line.count);
-	const char* buf = line.data;
-	/* nob_log(NOB_INFO, "%s\n", buf); */
-	nob_sb_append_buf(&bookmark, &buf, line.count);
+	/* nob_log(NOB_INFO, "`"SV_Fmt"`", SV_Arg(line)); */
+	nob_sb_append_buf(&bookmark, line.data, line.count);
 	nob_sb_append_null(&bookmark);
 	nob_da_append(&bookmarks, bookmark);
     }
-    nob_log(NOB_INFO, "%zu\n", bookmarks.items[0].count);
-    /* nob_log(NOB_INFO, "`"SV_Fmt"`", SV_Arg(bookmarks.items[0])); */
-
-    nob_log(NOB_INFO, "bookmarks count: %zu\n", bookmarks.count);
-    nob_log(NOB_INFO, "%zu\n", bookmarks.items[0].count);
-    /* for (size_t b = 0; b < bookmarks.count; ++b) { */
-    /* 	nob_log(NOB_INFO, "%zu\n", bookmarks.items[b].count); */
-    /* 	Nob_String_View bookmark = nob_sb_to_sv(bookmarks.items[b]); */
-    /* 	nob_log(NOB_INFO, "`"SV_Fmt"`", SV_Arg(bookmark)); */
-    /* } */
+    nob_log(NOB_INFO, "%zu", bookmarks.count);
+    for (size_t i = 0; i < bookmarks.count; i++) {
+	nob_log(NOB_INFO, "%s\n", bookmarks.items[i].items);
+    }
 
  defer:
     nob_sb_free(file_sb);
