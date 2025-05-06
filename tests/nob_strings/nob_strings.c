@@ -1,6 +1,7 @@
+#include <limits.h>
 #define NOB_IMPLEMENTATION
 #include "nob.h"
-#include <limits.h>
+#include "greatest.h"
 
 #define DELIM "|"
 #define BM_FILENAME ".wdc"
@@ -96,7 +97,7 @@ int main(void) {
     /* 	/\* nob_log(NOB_INFO, "%s\n", bookmarks.items[i].items); *\/ */
     /* } */    
     /* nob_da_free(bookmarks); */
-    char *path = find("play-shell");
+    char *path = find("wdc");
     printf("path: %s\n", path);
     return 0;
 }
