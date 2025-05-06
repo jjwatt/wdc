@@ -78,19 +78,16 @@ char *find(const char *needle) {
 	Nob_String_Builder name_sb = {0};
 	nob_sb_append_buf(&name_sb, name_sv.data, name_sv.count);
 	nob_sb_append_null(&name_sb);
-	printf("name_sb.items: %s\n", name_sb.items);
-	printf("name_sb.count: %zu\n", name_sb.count);
-	printf("strlen(name_sb.items): %lu\n", strlen(name_sb.items));
+	/* printf("name_sb.items: %s\n", name_sb.items); */
+	/* printf("name_sb.count: %zu\n", name_sb.count); */
+	/* printf("strlen(name_sb.items): %lu\n", strlen(name_sb.items)); */
 	size_t name_sb_len = strlen(name_sb.items);
+	// name_sv should now contain the part before '|'
 	if (strncmp(needle, name_sb.items, name_sb_len) == 0 && name_sb_len == strlen(needle)) {
+	    // We're done with name_sb
 	    nob_sb_free(name_sb);
-	    printf("Found!\n");
 	    found_path = strndup(entry_sv.data, entry_sv.count);
 	}
-	/* if (strncmp(needle, name_sb.items, name_sb_len) == 0) { */
-	/*   printf("Found!\n"); */
-	/*   return name_sb.items; */
-	/* } */
 	nob_sb_free(entry_sb);
     }
     nob_da_free(bookmarks);
@@ -105,7 +102,7 @@ int main(void) {
     /* 	/\* nob_log(NOB_INFO, "%s\n", bookmarks.items[i].items); *\/ */
     /* } */    
     /* nob_da_free(bookmarks); */
-    char *path = find("wdc");
+    char *path = find("play-shell");
     printf("path: %s\n", path);
     return 0;
 }
