@@ -83,18 +83,13 @@ char *find(const char *needle) {
 	printf("strlen(name_sb.items): %lu\n", strlen(name_sb.items));
 	size_t name_sb_len = strlen(name_sb.items);
 	if (strncmp(needle, name_sb.items, name_sb_len) == 0 && name_sb_len == strlen(needle)) {
+	    nob_sb_free(name_sb);
 	    printf("Found!\n");
+	    found_path = strndup(entry_sv.data, entry_sv.count);
 	}
-	/* Nob_String_Builder path_sb = {0}; */
-	/* nob_sb_append_buf(&path_sb, path.data, path.count); */
-	/* nob_sb_append_null(&path_sb); */
-	/* char *delimiter = strstr(entry, DELIM); */
-	/* if (delimiter != NULL) { */
-	/*     size_t name_len = delimiter - entry; */
-	/*     if (strncmp(entry, name, name_len) == 0 && name_len == strlen(name)) { */
-	/* 	found_path = strdup(delimiter + strlen(DELIM)); */
-	/* 	break; */
-	/*     } */
+	/* if (strncmp(needle, name_sb.items, name_sb_len) == 0) { */
+	/*   printf("Found!\n"); */
+	/*   return name_sb.items; */
 	/* } */
 	nob_sb_free(entry_sb);
     }
