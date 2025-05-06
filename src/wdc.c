@@ -141,7 +141,7 @@ int list_bookmarks() {
  *
  * @return The matching name|path in the file.
  */
-char *find(const char *name) {
+char *find(const char *needle) {
     // Search from the bottom. So, it's the last one added.
     Bookmarks bookmarks = get_bookmarks_reversed();
     char *found_path = NULL;
@@ -149,14 +149,18 @@ char *find(const char *name) {
     // Simple linear search. Items can repeat. We get the last one added.
     for (size_t i = 0; i < bookmarks.count; i++) {
 	Nob_String_Builder entry_sb = bookmarks.items[i];
-	char *entry = entry_sb.items;
-	char *delimiter = strstr(entry, DELIM);
-	if (delimiter != NULL) {
-	    size_t name_len = delimiter - entry;
-	    if (strncmp(entry, name, name_len) == 0 && name_len == strlen(name)) {
-		found_path = strdup(delimiter + strlen(DELIM));
-		break;
-	    }
+	Nob_String_View entry_sv = nob_sb_to_sv(entry_sb);
+	Nob_String_View name_sv = nob_sv_chop_by_delim(&entry_sv, '|');
+
+	Nob_String_Builder name_sb = {0};
+	nob_sb_append_buf(&name_sb, name_sv.data, name_sv.count);
+	nob_sb_append_null(&name_sb);
+	size_t name_sb_len = strlen(name_sb.items);
+	// name_sv should now contain the part before '|'
+	if (strncmp(needle, name_sb.items, name_sb_len) == 0 && name_sb_len == strlen(needle)) {
+	    // We're done with name_sb
+	    nob_sb_free(name_sb);
+	    found_path = strndup(entry_sv.data, entry_sv.count);
 	}
 	nob_sb_free(entry_sb);
     }

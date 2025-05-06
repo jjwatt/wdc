@@ -67,20 +67,14 @@ char *find(const char *needle) {
     char *found_path = NULL;
 
     // Simple linear search. Items can repeat. We get the last one added.
-    nob_log(NOB_INFO, "Looking for: %s", needle);
-    nob_log(NOB_INFO, "needle len: %lu", strlen(needle));
     for (size_t i = 0; i < bookmarks.count; i++) {
 	Nob_String_Builder entry_sb = bookmarks.items[i];
-	/* char *entry = entry_sb.items; */
 	Nob_String_View entry_sv = nob_sb_to_sv(entry_sb);
 	Nob_String_View name_sv = nob_sv_chop_by_delim(&entry_sv, '|');
 
 	Nob_String_Builder name_sb = {0};
 	nob_sb_append_buf(&name_sb, name_sv.data, name_sv.count);
 	nob_sb_append_null(&name_sb);
-	/* printf("name_sb.items: %s\n", name_sb.items); */
-	/* printf("name_sb.count: %zu\n", name_sb.count); */
-	/* printf("strlen(name_sb.items): %lu\n", strlen(name_sb.items)); */
 	size_t name_sb_len = strlen(name_sb.items);
 	// name_sv should now contain the part before '|'
 	if (strncmp(needle, name_sb.items, name_sb_len) == 0 && name_sb_len == strlen(needle)) {
