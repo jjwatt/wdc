@@ -14,7 +14,7 @@ typedef struct {
     size_t capacity;
 } Bookmarks;
 
-
+Nob_String_Builder get_bookmark_path(void);
 FILE *open_bookmark_file(const char *mode);
 void add_to_file(const char *name, const char *cwd_path, FILE *bookmark_file);
 int add(const char *name);
