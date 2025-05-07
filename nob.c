@@ -50,6 +50,6 @@ int main(int argc, char **argv) {
     /* if (!nob_cmd_run_sync_and_reset(&cmd)) return 1; */
     build_wdc_lib(&cmd);
     build_wdc_main(&cmd);
-    build_and_run_test(&cmd, "test_add");
+    build_and_run_test(&cmd, "test_get_bookmark_path");
     return 0;
 }

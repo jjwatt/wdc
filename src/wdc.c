@@ -11,6 +11,26 @@
 #include "nob.h"
 
 
+Nob_String_Builder get_bookmark_path(void) {
+    Nob_String_Builder sb = {0};
+    char bookmark_path[PATH_MAX];
+    char *env_bookmark_path = getenv("WDC_BOOKMARK_FILE");
+    if (env_bookmark_path == NULL) {
+	// WDC_BOOKMARK_FILE not set. Use default.
+	char *home_dir = getenv("HOME");
+	if (home_dir == NULL) {
+	    fprintf(stderr, "HOME env var not set. Using current directory for default bookmark file.");
+	    strncpy(bookmark_path, BM_FILENAME, sizeof(bookmark_path) - 1);
+	} else {
+	    snprintf(bookmark_path, sizeof(bookmark_path), "%s/%s", getenv("HOME"), BM_FILENAME);
+	}
+    } else {
+	strncpy(bookmark_path, env_bookmark_path, sizeof(bookmark_path) - 1);
+    }
+    nob_sb_append_cstr(&sb, bookmark_path);
+    return sb;
+}
+
 FILE *open_bookmark_file(const char *mode) {
     char bookmark_path[PATH_MAX];
     snprintf(bookmark_path, sizeof(bookmark_path), "%s/%s", getenv("HOME"), BM_FILENAME);
@@ -19,7 +39,6 @@ FILE *open_bookmark_file(const char *mode) {
 	fprintf(stderr, "Error: Could not open bookmarks file '%s'.\n", bookmark_path);
     }
     return bookmark_file;
-
 }
 
 /**
