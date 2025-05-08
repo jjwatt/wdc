@@ -51,6 +51,6 @@ int main(int argc, char **argv) {
     build_wdc_lib(&cmd);
     build_wdc_main(&cmd);
     /* build_and_run_test(&cmd, "test_get_bookmark_path"); */
-    build_and_run_test(&cmd, "test_add");
+    build_and_run_test(&cmd, "test_add_and_get_bookmarks");
     return 0;
 }
