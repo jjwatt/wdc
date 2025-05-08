@@ -15,7 +15,6 @@ Nob_String_Builder get_bookmark_path(void) {
     Nob_String_Builder sb = {0};
     char bookmark_path[PATH_MAX];
     char *env_bookmark_path = getenv("WDC_BOOKMARK_FILE");
-    printf("*env_bookmark_path in get_bookmark_path: %s\n", env_bookmark_path);
     if (env_bookmark_path == NULL) {
 	// WDC_BOOKMARK_FILE not set. Use default.
 	char *home_dir = getenv("HOME");
@@ -37,7 +36,6 @@ FILE *open_bookmark_file(const char *mode) {
     /* char bookmark_path[PATH_MAX]; */
     /* snprintf(bookmark_path, sizeof(bookmark_path), "%s/%s", getenv("HOME"), BM_FILENAME); */
     Nob_String_Builder bookmark_path = get_bookmark_path();
-    printf("bookmark_path in open_bookmark_file: %s\n", bookmark_path.items);
     FILE *bookmark_file = fopen(bookmark_path.items, mode);
     if (bookmark_file == NULL) {
 	fprintf(stderr, "Error: Could not open bookmarks file '%s'.\n", bookmark_path.items);
@@ -91,7 +89,6 @@ Bookmarks get_bookmarks(void) {
     Nob_String_Builder file_sb = {0};
 
     Nob_String_Builder bookmark_path = get_bookmark_path();
-    printf("bookmark_path in get_bookmarks: %s\n", bookmark_path.items);
     if (!nob_read_entire_file(bookmark_path.items, &file_sb)) return bookmarks;
 
     Nob_String_View content = {
