@@ -32,11 +32,12 @@ Nob_String_Builder get_bookmark_path(void) {
 }
 
 FILE *open_bookmark_file(const char *mode) {
-    char bookmark_path[PATH_MAX];
-    snprintf(bookmark_path, sizeof(bookmark_path), "%s/%s", getenv("HOME"), BM_FILENAME);
-    FILE *bookmark_file = fopen(bookmark_path, mode);
+    /* char bookmark_path[PATH_MAX]; */
+    /* snprintf(bookmark_path, sizeof(bookmark_path), "%s/%s", getenv("HOME"), BM_FILENAME); */
+    Nob_String_Builder bookmark_path = get_bookmark_path();
+    FILE *bookmark_file = fopen(bookmark_path.items, mode);
     if (bookmark_file == NULL) {
-	fprintf(stderr, "Error: Could not open bookmarks file '%s'.\n", bookmark_path);
+	fprintf(stderr, "Error: Could not open bookmarks file '%s'.\n", bookmark_path.items);
     }
     return bookmark_file;
 }
@@ -86,10 +87,8 @@ Bookmarks get_bookmarks(void) {
     Bookmarks bookmarks = {0};
     Nob_String_Builder file_sb = {0};
 
-    char bookmark_path[PATH_MAX];
-    snprintf(bookmark_path, sizeof(bookmark_path),
-	     "%s/%s", getenv("HOME"), BM_FILENAME);
-    if (!nob_read_entire_file(bookmark_path, &file_sb)) return bookmarks;
+    Nob_String_Builder bookmark_path = get_bookmark_path();
+    if (!nob_read_entire_file(bookmark_path.items, &file_sb)) return bookmarks;
 
     Nob_String_View content = {
 	.data = file_sb.items,
