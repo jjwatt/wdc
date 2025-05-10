@@ -12,7 +12,7 @@ TEST add_should_add_to_file(void) {
     printf("env: %s\n", getenv("WDC_BOOKMARK_FILE"));
     ASSERT_EQ(0, add("test"));
     Bookmarks bms = get_bookmarks();
-    printf("bookmark: %s", bms.items[0].items);
+    printf("bookmark: %s\n", bms.items[0].items);
     rmdir(temp_path);
     nob_temp_rewind(mark);
     PASS();
@@ -25,7 +25,12 @@ TEST pop_should_pop_entry(void) {
     const char *temp_path = nob_temp_sprintf("%s/%s", temp_dir, "test.wdc");
     setenv("WDC_BOOKMARK_FILE", temp_path, 1);
     ASSERT_EQ(0, add("test"));
-    rmdir(temp_path);
+    // Add again so there's two
+    ASSERT_EQ(0, add("test"));
+    const char *bm = pop();
+    printf("pop path: %s\n", temp_path);
+    printf("*bm: %s\n", bm);
+    // rmdir(temp_path);
     nob_temp_rewind(mark);
     PASS();
 }
