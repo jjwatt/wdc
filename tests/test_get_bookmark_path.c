@@ -5,7 +5,6 @@
 
 TEST get_bookmark_path_should_return_path(void) {
     Nob_String_Builder sb = get_bookmark_path();
-    printf("%s\n", sb.items);
     char *home_dir = getenv("HOME");
     char buf[PATH_MAX];
     snprintf(buf, PATH_MAX, "%s/%s", home_dir, BM_FILENAME);
@@ -14,7 +13,6 @@ TEST get_bookmark_path_should_return_path(void) {
     sb.count = 0;
     setenv("WDC_BOOKMARK_FILE", "/tmp/test.wdc", 1);
     sb = get_bookmark_path();
-    printf("%s\n", sb.items);
     ASSERT_STR_EQ("/tmp/test.wdc", sb.items);
     PASS();
 }
