@@ -1,3 +1,4 @@
+/* -*- mode: c; c-basic-offset: 4 -*- */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -149,6 +150,16 @@ int list_bookmarks() {
     }
     nob_da_free(bookmarks);
     return 0;
+}
+
+/**
+ * @brief Pop bookmark off reversed list.
+ * @details Pop the top bookmark and write the rest back to the file.
+ */
+const char *pop(void) {
+    Bookmarks bookmarks = get_bookmarks_reversed();
+    return bookmarks.items[0].items;
+    nob_da_free(bookmarks);
 }
 
 /**
