@@ -18,10 +18,23 @@ TEST add_should_add_to_file(void) {
     PASS();
 }
 
+TEST pop_should_pop_entry(void) {
+    char template[] = "/tmp/wdc-XXXXXX";
+    char *temp_dir = mkdtemp(template);
+    size_t mark = nob_temp_save();
+    const char *temp_path = nob_temp_sprintf("%s/%s", temp_dir, "test.wdc");
+    setenv("WDC_BOOKMARK_FILE", temp_path, 1);
+    ASSERT_EQ(0, add("test"));
+    rmdir(temp_path);
+    nob_temp_rewind(mark);
+    PASS();
+}
+
 GREATEST_MAIN_DEFS();
 
 int main(int argc, char **argv) {
     GREATEST_MAIN_BEGIN();
     RUN_TEST(add_should_add_to_file);
+    RUN_TEST(pop_should_pop_entry);
     GREATEST_MAIN_END();
 }
