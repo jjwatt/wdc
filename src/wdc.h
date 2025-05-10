@@ -20,7 +20,8 @@ void add_to_file(const char *name, const char *cwd_path, FILE *bookmark_file);
 int add(const char *name);
 Bookmarks get_bookmarks(void);
 Bookmarks get_bookmarks_reversed(void);
-int list_bookmarks();
+int list_bookmarks(void);
 char *find(const char *name);
+const char *pop(void);
 
 #endif

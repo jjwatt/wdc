@@ -142,7 +142,7 @@ Bookmarks get_bookmarks_reversed(void) {
 /**
  * @brief Print bookmarks in reverse order
 */
-int list_bookmarks() {
+int list_bookmarks(void) {
     Bookmarks bookmarks = get_bookmarks_reversed();
     for (size_t i = 0; i < bookmarks.count; i++) {
 	printf("%s\n", bookmarks.items[i].items);
@@ -158,8 +158,16 @@ int list_bookmarks() {
  */
 const char *pop(void) {
     Bookmarks bookmarks = get_bookmarks_reversed();
-    return bookmarks.items[0].items;
+    Nob_String_Builder bm_sb = {0};
+    bm_sb = bookmarks.items[0];
+    Nob_String_View bm_sv = nob_sb_to_sv(bm_sb);
+    nob_sv_chop_by_delim(&bm_sv, '|');
+    bookmarks.count--;
+    Nob_String_Builder bookmark_path = get_bookmark_path();
+    //    if (!nob_read_entire_file(bookmark_path.items, &file_sb)) return bookmarks;
+    nob_write_entire_file(bookmark_path.items, bookmarks.items, bookmarks.count);
     nob_da_free(bookmarks);
+    return bm_sv.data;
 }
 
 /**
