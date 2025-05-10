@@ -1,3 +1,4 @@
+/* -*- mode: c; c-basic-offset: 4 -*- */
 #define NOB_IMPLEMENTATION
 
 #include "nob.h"
@@ -11,10 +12,20 @@ const char *test_names[] = {
 };
 
 bool build_wdc_lib(Nob_Cmd *cmd) {
-    nob_cmd_append(cmd, "cc", "-Wall", "-Wextra", "-c", SRC_FOLDER"wdc.c", "-o", BUILD_FOLDER"wdc.o");
+    const char *bin_path = BUILD_FOLDER"wdc.o";
+    const char *src_path = SRC_FOLDER"wdc.c";
+    Nob_File_Paths source_paths = {0};
+    nob_da_append(&source_paths, src_path);
+    int rebuild_is_needed = nob_needs_rebuild(bin_path, source_paths.items, source_paths.count);
+    if (rebuild_is_needed < 0) return false;
+    if (!rebuild_is_needed) {
+	nob_da_free(source_paths);
+	return true;
+    }
+    nob_cmd_append(cmd, "cc", "-Wall", "-Wextra", "-c", src_path, "-o", bin_path);
     if (!nob_cmd_run_sync_and_reset(cmd)) return false;
     /* Create static lib */
-    nob_cmd_append(cmd, "ar", "rcs", BUILD_FOLDER"libwdc.a", BUILD_FOLDER"wdc.o");
+    nob_cmd_append(cmd, "ar", "rcs", BUILD_FOLDER"libwdc.a", bin_path);
     if (!nob_cmd_run_sync_and_reset(cmd)) return false;
     return true;
 }
@@ -37,6 +48,7 @@ bool build_and_run_test(Nob_Cmd *cmd, const char *test_name) {
     if (!nob_cmd_run_sync_and_reset(cmd)) return false;
     nob_cmd_append(cmd, bin_path);
     if (!nob_cmd_run_sync_and_reset(cmd)) return false;
+    nob_temp_rewind(mark);
     return true;
 }
 
@@ -48,7 +60,7 @@ int main(int argc, char **argv) {
     /* /\* Build the lib object *\/ */
     /* nob_cmd_append(&cmd, "cc", "-Wall", "-Wextra", "-c", SRC_FOLDER"wdc.c", "-o", BUILD_FOLDER"wdc.o"); */
     /* if (!nob_cmd_run_sync_and_reset(&cmd)) return 1; */
-    build_wdc_lib(&cmd);
+    if (!build_wdc_lib(&cmd)) return 1;
     build_wdc_main(&cmd);
     /* build_and_run_test(&cmd, "test_get_bookmark_path"); */
     build_and_run_test(&cmd, "test_add_and_get_bookmarks");
