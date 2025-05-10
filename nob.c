@@ -32,7 +32,6 @@ bool build_wdc_lib(Nob_Cmd *cmd) {
 }
 
 bool build_wdc_main(Nob_Cmd *cmd) {
-    // TODO(jjwatt): Call build_wdc_lib if we need to?
     const char *bin_path = BUILD_FOLDER"wdc";
     const char *src_path = SRC_FOLDER"main.c";
     Nob_File_Paths source_paths = {0};
@@ -71,8 +70,8 @@ int main(int argc, char **argv) {
     Nob_Cmd cmd = {0};
     /* Build the lib */
     if (!build_wdc_lib(&cmd)) return 1;
-    build_wdc_main(&cmd);
-    /* build_and_run_test(&cmd, "test_get_bookmark_path"); */
-    build_and_run_test(&cmd, "test_add_and_get_bookmarks");
+    if (!build_wdc_main(&cmd)) return 1;
+    if (!build_and_run_test(&cmd, "test_get_bookmark_path")) return 1;
+    if (!build_and_run_test(&cmd, "test_add_and_get_bookmarks")) return 1;
     return 0;
 }
