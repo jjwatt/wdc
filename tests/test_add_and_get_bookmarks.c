@@ -32,7 +32,7 @@ TEST pop_should_pop_entry(void) {
     printf("pop path: %s\n", temp_path);
     printf("*bm: %s\n", bm);
     // TODO: assert on something
-    // rmdir(temp_path);
+    rmdir(temp_path);
     nob_temp_rewind(mark);
     PASS();
 }
