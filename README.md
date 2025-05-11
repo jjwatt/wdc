@@ -12,6 +12,7 @@ There's only one point of configuration. You can set WDC_BOOKMARK_FILE to be whe
             -h, --help          Show this help message and exit
             -l, --list          List bookmarks
             -a, --add [name]    Add current directory with name
+            -p, --pop           Pop the last item off the list and return the dir
 ```
 
 `wdc` is meant to be used with finders like `fzy`[^1]. e.g.,
