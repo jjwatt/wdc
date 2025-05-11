@@ -105,6 +105,7 @@ Bookmarks get_bookmarks(void) {
 	nob_da_append(&bookmarks, bookmark);
     }
     /* nob_log(NOB_INFO, "%zu", bookmarks.count); */
+    nob_sb_free(bookmark_path);
     nob_sb_free(file_sb);
     return bookmarks;
 }
@@ -158,6 +159,11 @@ int list_bookmarks(void) {
  */
 const char *pop(void) {
     Bookmarks bookmarks = get_bookmarks_reversed();
+    char *popped_path = NULL;
+    if (bookmarks.items == NULL || bookmarks.count == 0) {
+	nob_da_free(bookmarks);
+	return NULL;
+    }
     Nob_String_Builder bm_sb = {0};
     bm_sb = bookmarks.items[0];
     Nob_String_View bm_sv = nob_sb_to_sv(bm_sb);
@@ -171,12 +177,13 @@ const char *pop(void) {
 	nob_sb_append_cstr(&bookmarks_sb, "\n");
     }
     int result = nob_write_entire_file(bookmark_path.items, bookmarks_sb.items, bookmarks_sb.count);
+    popped_path = strndup(bm_sv.data, bm_sv.count);
     nob_da_free(bookmarks);
     nob_sb_free(bookmarks_sb);
     if (!result) {
 	return NULL;
     }
-    return bm_sv.data;
+    return popped_path;
 }
 
 
@@ -210,7 +217,6 @@ char *find(const char *needle) {
 	    nob_sb_free(name_sb);
 	    found_path = strndup(entry_sv.data, entry_sv.count);
 	}
-	nob_sb_free(entry_sb);
     }
     nob_da_free(bookmarks);
     return found_path;
