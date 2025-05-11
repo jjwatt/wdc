@@ -7,7 +7,7 @@ There's only one point of configuration. You can set WDC_BOOKMARK_FILE to be whe
 ## Usage
 
 ```
-    "Usage: %s [OPTIONS]
+    "Usage: wdc [OPTIONS]
         Options:
             -h, --help          Show this help message and exit
             -l, --list          List bookmarks
