@@ -162,11 +162,19 @@ const char *pop(void) {
     bm_sb = bookmarks.items[0];
     Nob_String_View bm_sv = nob_sb_to_sv(bm_sb);
     nob_sv_chop_by_delim(&bm_sv, '|');
-    bookmarks.count--;
+    size_t original_count = bookmarks.count;
+    // bookmarks.count--;
     Nob_String_Builder bookmark_path = get_bookmark_path();
     Nob_String_Builder bookmarks_sb = {0};
-    for (size_t i = 0; i < bookmarks.count; i++) {
-	nob_sb_append_buf(&bookmarks_sb, bookmarks.items[i].items, bookmarks.items[i].count);
+    /* TODO: Write them back in reverse order since that's the original order */
+    /* for (size_t i = 0; i < bookmarks.count; i++) { */
+    /* 	nob_sb_append_buf(&bookmarks_sb, bookmarks.items[i].items, bookmarks.items[i].count); */
+    /* 	nob_sb_append_cstr(&bookmarks_sb, "\n"); */
+    /* } */
+    for (size_t i = original_count - 1; i > 1; --i) {
+	// Index goes from count - 1 down to 0
+	size_t index = i - 1;
+	nob_sb_append_buf(&bookmarks_sb, bookmarks.items[index].items, bookmarks.items[index].count);
 	nob_sb_append_cstr(&bookmarks_sb, "\n");
     }
     int result = nob_write_entire_file(bookmark_path.items, bookmarks_sb.items, bookmarks_sb.count);
