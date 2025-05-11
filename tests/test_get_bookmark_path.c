@@ -14,6 +14,7 @@ TEST get_bookmark_path_should_return_path(void) {
     setenv("WDC_BOOKMARK_FILE", "/tmp/test.wdc", 1);
     sb = get_bookmark_path();
     ASSERT_STR_EQ("/tmp/test.wdc", sb.items);
+    nob_sb_free(sb);
     PASS();
 }
 
