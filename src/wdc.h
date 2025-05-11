@@ -19,6 +19,7 @@ FILE *open_bookmark_file(const char *mode);
 void add_to_file(const char *name, const char *cwd_path, FILE *bookmark_file);
 int add(const char *name);
 Bookmarks get_bookmarks(void);
+int free_bookmarks(Bookmarks bookmarks);
 Bookmarks get_bookmarks_reversed(void);
 int list_bookmarks(void);
 char *find(const char *name);

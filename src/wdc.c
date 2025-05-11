@@ -41,6 +41,7 @@ FILE *open_bookmark_file(const char *mode) {
     if (bookmark_file == NULL) {
 	fprintf(stderr, "Error: Could not open bookmarks file '%s'.\n", bookmark_path.items);
     }
+    nob_sb_free(bookmark_path);
     return bookmark_file;
 }
 
@@ -110,6 +111,13 @@ Bookmarks get_bookmarks(void) {
     return bookmarks;
 }
 
+int free_bookmarks(Bookmarks bookmarks) {
+    for (size_t i = 0; i < bookmarks.count; i++) {
+	nob_sb_free(bookmarks.items[i]);
+    }
+    return 0;
+}
+
 /**
  * @brief Get bookmarks in reverse order
  *
@@ -156,6 +164,7 @@ int list_bookmarks(void) {
 /**
  * @brief Pop bookmark off reversed list.
  * @details Pop the top bookmark and write the rest back to the file.
+ * @return The bookmark path
  */
 const char *pop(void) {
     Bookmarks bookmarks = get_bookmarks_reversed();
@@ -178,6 +187,7 @@ const char *pop(void) {
     }
     int result = nob_write_entire_file(bookmark_path.items, bookmarks_sb.items, bookmarks_sb.count);
     popped_path = strndup(bm_sv.data, bm_sv.count);
+    nob_sb_free(bookmark_path);
     nob_da_free(bookmarks);
     nob_sb_free(bookmarks_sb);
     if (!result) {

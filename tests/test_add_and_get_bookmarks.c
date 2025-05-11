@@ -15,6 +15,7 @@ TEST add_should_add_to_file(void) {
     printf("bookmark: %s\n", bms.items[0].items);
     rmdir(temp_path);
     nob_temp_rewind(mark);
+    free_bookmarks(bms);
     PASS();
 }
 
