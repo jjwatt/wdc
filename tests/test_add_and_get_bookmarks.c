@@ -15,7 +15,7 @@ TEST add_should_add_to_file(void) {
     printf("bookmark: %s\n", bms.items[0].items);
     rmdir(temp_path);
     nob_temp_rewind(mark);
-    free_bookmarks(bms);
+    nob_da_free(bms);
     PASS();
 }
 
@@ -29,10 +29,11 @@ TEST pop_should_pop_entry(void) {
     // Add again so there's two
     ASSERT_EQ(0, add("test"));
     ASSERT_EQ(0, add("test"));
-    const char *bm = pop();
+    char *bm = pop();
     printf("pop path: %s\n", temp_path);
     printf("*bm: %s\n", bm);
     // TODO: assert on something
+    free(bm);
     rmdir(temp_path);
     nob_temp_rewind(mark);
     PASS();
