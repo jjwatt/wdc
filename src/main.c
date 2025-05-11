@@ -10,6 +10,7 @@ void print_usage(const char *program_name) {
     fprintf(stderr, "  -h, --help          Show this help message and exit\n");
     fprintf(stderr, "  -l, --list          List bookmarks\n");
     fprintf(stderr, "  -a, --add [name]    Add current directory with name\n");
+    fprintf(stderr, "  -p, --pop           Pop the last item off the list and return the dir\n");
 }
 
 int main(int argc, char **argv) {
@@ -23,6 +24,7 @@ int main(int argc, char **argv) {
 	{"help", no_argument, 0, 'h'},
 	{"list", no_argument, 0, 'l'},
 	{"add", required_argument, NULL, 'a'},
+	{"pop", no_argument, 0, 'p' },
 	{0, 0, 0, 0}
     };
 
@@ -38,6 +40,10 @@ int main(int argc, char **argv) {
 	    if (add(optarg) != 0) {
 		return 1;
 	    }
+	    break;
+	case 'p':
+	    const char *popped = pop();
+	    printf("%s\n", popped);
 	    break;
 	default:
 	    print_usage(argv[0]);
