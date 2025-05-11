@@ -23,5 +23,6 @@ Bookmarks get_bookmarks_reversed(void);
 int list_bookmarks(void);
 char *find(const char *name);
 char *pop(void);
+void free_bookmarks(Bookmarks *bookmarks_ptr);
 
 #endif

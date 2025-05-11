@@ -1,4 +1,5 @@
 /* -*- mode: c; c-basic-offset: 4 -*- */
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -112,6 +113,28 @@ Bookmarks get_bookmarks(void) {
 }
 
 /**
+ * @brief Loop through bookmark items and free them
+ * @param bookmarks_ptr A pointer to a bookmarks struct to free
+ */
+void free_bookmarks(Bookmarks *bookmarks_ptr) {
+    if (bookmarks_ptr == NULL || bookmarks_ptr->items == NULL) {
+	// It's already free or never allocated.
+	return;
+    }
+    // Iterate through each Nob_String_Builder item in the array.
+    for (size_t i = 0; i < bookmarks_ptr->count; ++i) {
+	nob_sb_free(bookmarks_ptr->items[i]);
+    }
+    // Free the main array buffer
+    free(bookmarks_ptr->items);
+
+    // Reset structure members to 0 values
+    bookmarks_ptr->items = NULL;
+    bookmarks_ptr->count = 0;
+    bookmarks_ptr->capacity = 0;
+}
+
+/**
  * @brief Get bookmarks in reverse order
  *
  * This will get them in the order added to the file.
@@ -150,7 +173,7 @@ int list_bookmarks(void) {
 	printf("%s\n", bookmarks.items[i].items);
 	nob_sb_free(bookmarks.items[i]);
     }
-    nob_da_free(bookmarks);
+    free_bookmarks(&bookmarks);
     return 0;
 }
 
@@ -163,27 +186,32 @@ char *pop(void) {
     Bookmarks bookmarks = get_bookmarks_reversed();
     char *popped_path = NULL;
     if (bookmarks.items == NULL || bookmarks.count == 0) {
-	nob_da_free(bookmarks);
+	free_bookmarks(&bookmarks);
 	return NULL;
     }
     Nob_String_Builder bm_sb = {0};
     bm_sb = bookmarks.items[0];
     Nob_String_View bm_sv = nob_sb_to_sv(bm_sb);
     nob_sv_chop_by_delim(&bm_sv, '|');
-    bookmarks.count--;
+    /* bookmarks.count--; */
     Nob_String_Builder bookmark_path = get_bookmark_path();
     Nob_String_Builder bookmarks_sb = {0};
     /* Write them back in reversed order because that's the original order */
-    for (size_t i = bookmarks.count; i > 0; i--) {
+    for (size_t i = bookmarks.count - 1; i > 0; i--) {
 	nob_sb_append_buf(&bookmarks_sb, bookmarks.items[i].items, bookmarks.items[i].count);
 	nob_sb_append_cstr(&bookmarks_sb, "\n");
     }
     int result = nob_write_entire_file(bookmark_path.items, bookmarks_sb.items, bookmarks_sb.count);
     popped_path = strndup(bm_sv.data, bm_sv.count);
+    if (popped_path == NULL) {
+	free_bookmarks(&bookmarks);
+	return NULL;
+    }
     nob_sb_free(bookmark_path);
     nob_sb_free(bookmarks_sb);
-    nob_da_free(bookmarks);
+    free_bookmarks(&bookmarks);
     if (!result) {
+	free(popped_path);
 	return NULL;
     }
     return popped_path;
@@ -204,6 +232,10 @@ char *find(const char *needle) {
     Bookmarks bookmarks = get_bookmarks_reversed();
     char *found_path = NULL;
 
+    if (bookmarks.items == NULL || bookmarks.count == 0) {
+	free_bookmarks(&bookmarks);
+	return NULL;
+    }
     // Simple linear search. Items can repeat. We get the last one added.
     for (size_t i = 0; i < bookmarks.count; i++) {
 	Nob_String_Builder entry_sb = bookmarks.items[i];
@@ -221,6 +253,6 @@ char *find(const char *needle) {
 	    found_path = strndup(entry_sv.data, entry_sv.count);
 	}
     }
-    nob_da_free(bookmarks);
+    free_bookmarks(&bookmarks);
     return found_path;
 }
