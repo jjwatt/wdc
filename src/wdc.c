@@ -171,7 +171,6 @@ int list_bookmarks(void) {
     Bookmarks bookmarks = get_bookmarks_reversed();
     for (size_t i = 0; i < bookmarks.count; i++) {
 	printf("%s\n", bookmarks.items[i].items);
-	nob_sb_free(bookmarks.items[i]);
     }
     free_bookmarks(&bookmarks);
     return 0;

@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     };
 
     /* Process command line options */
-    while ((opt = getopt_long(argc, argv, "hla:", long_options, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, "hlpa:", long_options, NULL)) != -1) {
 	switch (opt) {
 	case 'h':
 	    print_usage(argv[0]);
@@ -42,8 +42,9 @@ int main(int argc, char **argv) {
 	    }
 	    break;
 	case 'p':
-	    const char *popped = pop();
+	    char *popped = pop();
 	    printf("%s\n", popped);
+	    free(popped);
 	    break;
 	default:
 	    print_usage(argv[0]);
