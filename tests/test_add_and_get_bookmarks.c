@@ -27,9 +27,11 @@ TEST pop_should_pop_entry(void) {
     ASSERT_EQ(0, add("test"));
     // Add again so there's two
     ASSERT_EQ(0, add("test"));
+    ASSERT_EQ(0, add("test"));
     const char *bm = pop();
     printf("pop path: %s\n", temp_path);
     printf("*bm: %s\n", bm);
+    // TODO: assert on something
     // rmdir(temp_path);
     nob_temp_rewind(mark);
     PASS();

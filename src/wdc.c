@@ -165,8 +165,14 @@ const char *pop(void) {
     bookmarks.count--;
     Nob_String_Builder bookmark_path = get_bookmark_path();
     //    if (!nob_read_entire_file(bookmark_path.items, &file_sb)) return bookmarks;
-    nob_write_entire_file(bookmark_path.items, bookmarks.items, bookmarks.count);
+    Nob_String_Builder bookmarks_sb = {0};
+    for (size_t i = 0; i < bookmarks.count; i++) {
+	nob_sb_append_buf(&bookmarks_sb, bookmarks.items[i].items, bookmarks.items[i].count);
+	nob_sb_append_cstr(&bookmarks_sb, "\n");
+    }
+    nob_write_entire_file(bookmark_path.items, bookmarks_sb.items, bookmarks_sb.count);
     nob_da_free(bookmarks);
+    nob_sb_free(bookmarks_sb);
     return bm_sv.data;
 }
 
