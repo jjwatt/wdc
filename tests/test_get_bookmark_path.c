@@ -9,6 +9,7 @@ TEST get_bookmark_path_should_return_path(void) {
     char buf[PATH_MAX];
     snprintf(buf, PATH_MAX, "%s/%s", home_dir, BM_FILENAME);
     ASSERT_STR_EQ(buf, sb.items);
+    nob_sb_free(sb);
 
     sb.count = 0;
     setenv("WDC_BOOKMARK_FILE", "/tmp/test.wdc", 1);

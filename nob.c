@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
     /* Build the lib */
     if (!build_wdc_lib(&cmd)) return 1;
     if (!build_wdc_main(&cmd)) return 1;
-    if (!build_and_run_test(&cmd, "test_add_and_get_bookmarks")) return 1; 
     if (!build_and_run_test(&cmd, "test_get_bookmark_path")) return 1;
+    if (!build_and_run_test(&cmd, "test_add_and_get_bookmarks")) return 1; 
    return 0;
 }
