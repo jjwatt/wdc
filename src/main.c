@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
 	    free(path);
 	} else {
 	    // TODO: Maybe don't print anything
-	    printf("Bookmark '%s' not found\n", find_name);
+	    fprintf(stderr, "Bookmark '%s' not found\n", find_name);
 	    return 1;
 	}
     } else if (argc == 1) {
