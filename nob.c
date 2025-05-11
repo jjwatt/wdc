@@ -22,8 +22,8 @@ bool build_wdc_lib(Nob_Cmd *cmd) {
 	nob_da_free(source_paths);
 	return true;
     }
-    /* nob_cmd_append(cmd, "cc", "-Wall", "-Wextra","-fsanitize=address", "-g", "-c", src_path, "-o", bin_path); */
-    nob_cmd_append(cmd, "cc", "-Wall", "-Wextra", "-g", "-c", src_path, "-o", bin_path);
+    nob_cmd_append(cmd, "cc", "-Wall", "-Wextra","-fsanitize=address", "-g", "-c", src_path, "-o", bin_path);
+    /* nob_cmd_append(cmd, "cc", "-Wall", "-Wextra", "-g", "-c", src_path, "-o", bin_path); */
     if (!nob_cmd_run_sync_and_reset(cmd)) return false;
     /* Create static lib */
     nob_cmd_append(cmd, "ar", "rcs", BUILD_FOLDER"libwdc.a", bin_path);
@@ -48,8 +48,8 @@ bool build_wdc_main(Nob_Cmd *cmd) {
 	return true;
     }
     /* Link static library with main */
-    /* nob_cmd_append(cmd, "cc", "-Wall", "-Wextra", "-fsanitize=address", "-g", src_path, "-o", bin_path, "-L"BUILD_FOLDER, "-lwdc"); */
-    nob_cmd_append(cmd, "cc", "-Wall", "-Wextra", "-g", src_path, "-o", bin_path, "-L"BUILD_FOLDER, "-lwdc");
+    nob_cmd_append(cmd, "cc", "-Wall", "-Wextra", "-fsanitize=address", "-g", src_path, "-o", bin_path, "-L"BUILD_FOLDER, "-lwdc");
+    /* nob_cmd_append(cmd, "cc", "-Wall", "-Wextra", "-g", src_path, "-o", bin_path, "-L"BUILD_FOLDER, "-lwdc"); */
     if (!nob_cmd_run_sync_and_reset(cmd)) return false;
     nob_da_free(source_paths);
     return true;
@@ -61,8 +61,8 @@ bool build_and_run_test(Nob_Cmd *cmd, const char *test_name) {
     const char *src_path = nob_temp_sprintf("%s%s.c", TESTS_FOLDER, test_name);
 
     build_wdc_lib(cmd);
-    /* nob_cmd_append(cmd, "cc", "-Wall", "-Wextra", "-fsanitize=address", "-g", src_path, "-o", bin_path, "-L"BUILD_FOLDER, "-lwdc"); */
-    nob_cmd_append(cmd, "cc", "-Wall", "-Wextra", "-g", src_path, "-o", bin_path, "-L"BUILD_FOLDER, "-lwdc");
+    nob_cmd_append(cmd, "cc", "-Wall", "-Wextra", "-fsanitize=address", "-g", src_path, "-o", bin_path, "-L"BUILD_FOLDER, "-lwdc");
+    /* nob_cmd_append(cmd, "cc", "-Wall", "-Wextra", "-g", src_path, "-o", bin_path, "-L"BUILD_FOLDER, "-lwdc"); */
     if (!nob_cmd_run_sync_and_reset(cmd)) return false;
     nob_cmd_append(cmd, bin_path);
     if (!nob_cmd_run_sync_and_reset(cmd)) return false;
