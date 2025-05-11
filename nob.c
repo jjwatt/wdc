@@ -32,10 +32,13 @@ bool build_wdc_lib(Nob_Cmd *cmd) {
 }
 
 bool build_wdc_main(Nob_Cmd *cmd) {
+    // Build lib if it's needed
+    build_wdc_lib(cmd);
     const char *bin_path = BUILD_FOLDER"wdc";
     const char *src_path = SRC_FOLDER"main.c";
     Nob_File_Paths source_paths = {0};
     nob_da_append(&source_paths, src_path);
+    // Rebuild if lib changed, too.
     nob_da_append(&source_paths, SRC_FOLDER"wdc.c");
     int rebuild_is_needed = nob_needs_rebuild(bin_path, source_paths.items, source_paths.count);
     if (rebuild_is_needed < 0) return false;
