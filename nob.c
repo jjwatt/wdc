@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
     if (!build_wdc_main(&cmd)) return 1;
 
     if (strcmp(command_name, "test") == 0) {
-	/* if (!build_and_run_test(&cmd, "test_get_bookmark_path")) return 1; */
+	if (!build_and_run_test(&cmd, "test_get_bookmark_path")) return 1;
 	if (!build_and_run_test(&cmd, "test_add_and_get_bookmarks")) return 1;
     }
    return 0;
