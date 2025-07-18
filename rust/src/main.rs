@@ -33,12 +33,14 @@ enum Commands {
 /// Otherwise, look in the user's home directory for `BM_FILENAME`.
 /// If there is no `HOME` directory, then look in the current directory.
 fn get_bookmark_path() -> PathBuf {
-    // First, check the environment variable.
-    if let Ok(path_str) = env::var("WDC_BOOKMARK_FILE") {
-	return PathBuf::from(path_str);
-    }
-    let base_dir = env::home_dir().unwrap_or_else(|| PathBuf::from("."));
-    base_dir.join(BM_FILENAME)
+    env::var("WDC_BOOKMARK_FILE")
+	.map(PathBuf::from)
+	.unwrap_or_else(|_| {
+	    env::home_dir()
+		.or_else(|| env::current_dir().ok())
+		.unwrap_or_else(|| ".".into())
+		.join(BM_FILENAME)
+	})
 }
 
 /// Open the bookmark file.
