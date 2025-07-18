@@ -4,7 +4,9 @@ use std::fs::{File, OpenOptions};
 use std::io::{self, Write, Read};
 use clap::{Parser, Subcommand};
 
+/// The name of the file where bookmarks are stored.
 const BM_FILENAME: &str = ".bookmarks";
+/// The delimiter used to separate the bookmark name from the path.
 const DELIM: &str = "|";
 
 #[derive(Parser)]
@@ -16,13 +18,13 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Add a bookmark
+    /// Add a bookmark.
     Add { name: String },
-    /// List all bookmarks
+    /// List all bookmarks.
     List,
-    /// Find a bookmark
+    /// Find a bookmark.
     Find { name: String },
-    /// Pop the last added bookmark
+    /// Pop the last added bookmark.
     Pop,
 }
 
@@ -31,23 +33,15 @@ enum Commands {
 /// Otherwise, look in the user's home directory for `BM_FILENAME`.
 /// If there is no `HOME` directory, then look in the current directory.
 fn get_bookmark_path() -> PathBuf {
-    match env::var("WDC_BOOKMARK_FILE") {
-        Ok(val) => PathBuf::from(val),
-        Err(_) => {
-            let mut path = PathBuf::new();
-	    if let Some(home_dir) = env::home_dir() {
-		path.push(home_dir);
-		path.push(BM_FILENAME);
-	    } else {
-		// Fallback to current directory
-		path.push(".");
-		path.push(BM_FILENAME);
-	    }
-	    path
-        }
+    // First, check the environment variable.
+    if let Ok(path_str) = env::var("WDC_BOOKMARK_FILE") {
+	return PathBuf::from(path_str);
     }
+    let base_dir = env::home_dir().unwrap_or_else(|| PathBuf::from("."));
+    base_dir.join(BM_FILENAME)
 }
 
+/// Open the bookmark file.
 fn open_bookmark_file(mode: &str) -> io::Result<File> {
     let path = get_bookmark_path();
     let mut options = OpenOptions::new();
@@ -69,10 +63,12 @@ fn open_bookmark_file(mode: &str) -> io::Result<File> {
     }
 }
 
+/// Add bookmark to file with name and the path separated by DELIM.
 fn add_to_file(name: &str, cwd_path: &str, mut bookmark_file: &File) -> io::Result<()> {
     writeln!(bookmark_file, "{}{}{}", name, DELIM, cwd_path)
 }
 
+/// Add bookmark with name, name.
 fn add(name: &str) -> io::Result<()> {
     let cwd = env::current_dir()?;
     let bookmark_file = open_bookmark_file("a")?;
