@@ -1,5 +1,5 @@
 use std::env;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Write, Read};
 use clap::{Parser, Subcommand};
@@ -8,6 +8,13 @@ use clap::{Parser, Subcommand};
 const BM_FILENAME: &str = ".bookmarks";
 /// The delimiter used to separate the bookmark name from the path.
 const DELIM: &str = "|";
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+enum FileMode {
+    Read,
+    Append,
+    Write
+}
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -44,24 +51,20 @@ fn get_bookmark_path() -> PathBuf {
 }
 
 /// Open the bookmark file.
-fn open_bookmark_file(mode: &str) -> io::Result<File> {
+fn open_bookmark_file(mode: FileMode) -> io::Result<File> {
     let path = get_bookmark_path();
     let mut options = OpenOptions::new();
     match mode {
-        "r" => options.read(true),
-        "a" => options.append(true).create(true),
-        "w" => options.write(true).create(true).truncate(true),
-        _ => {
-            return Err(io::Error::new(io::ErrorKind::InvalidInput, "Invalid mode"));
-        }
+	FileMode::Read => options.read(true),
+	FileMode::Append => options.append(true).create(true),
+	FileMode::Write => options.write(true).create(true).truncate(true),
     };
-
     match options.open(&path) {
-        Ok(file) => Ok(file),
-        Err(e) => {
-            eprintln!("Error: Could not open bookmarks file '{}'.", path.display());
-            Err(e)
-        }
+	Ok(file) => Ok(file),
+	Err(e) => {
+	    eprintln!("Error: Could not open bookmarks file '{}'.", path.display());
+	    Err(e)
+	}
     }
 }
 
@@ -73,12 +76,12 @@ fn add_to_file(name: &str, cwd_path: &str, mut bookmark_file: &File) -> io::Resu
 /// Add bookmark with name, name.
 fn add(name: &str) -> io::Result<()> {
     let cwd = env::current_dir()?;
-    let bookmark_file = open_bookmark_file("a")?;
+    let bookmark_file = open_bookmark_file(FileMode::Append)?;
     add_to_file(name, cwd.to_str().unwrap(), &bookmark_file)
 }
 
 fn get_bookmarks() -> io::Result<Vec<String>> {
-    let mut file = open_bookmark_file("r")?;
+    let mut file = open_bookmark_file(FileMode::Read)?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
     Ok(contents.lines().map(String::from).collect())
@@ -110,7 +113,7 @@ fn pop() -> io::Result<Option<String>> {
     let popped_bookmark = bookmarks.remove(0);
     bookmarks.reverse(); // Write back in original order
 
-    let mut file = open_bookmark_file("w")?;
+    let mut file = open_bookmark_file(FileMode::Write)?;
     for bookmark in bookmarks {
         writeln!(file, "{}", bookmark)?;
     }
