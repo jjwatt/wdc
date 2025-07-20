@@ -1,20 +1,45 @@
 use std::env;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::fs::{File, OpenOptions};
-use std::io::{self, Write, Read};
+use std::io::{self, BufRead, BufReader, Write};
 use clap::{Parser, Subcommand};
 
+
+/// Environment variable that can overwrite the bookmarks file path.
+const BM_ENV: &str = "WDC_BOOKMARK_FILE";
 /// The name of the file where bookmarks are stored.
 const BM_FILENAME: &str = ".bookmarks";
 /// The delimiter used to separate the bookmark name from the path.
 const DELIM: &str = "|";
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-enum FileMode {
-    Read,
-    Append,
-    Write
+/// A bookmark is just a name and the directory it points to.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Bookmark {
+    name: String,
+    path: String,
 }
+
+impl Bookmark {
+    /// Create a new Bookmark from name and path.
+    fn new(name: impl Into<String>, path: impl Into<String>) -> Self {
+        Self {
+            name: name.into(),
+            path: path.into(),
+        }
+    }
+
+    /// Parse a single line from the bookmarks file.
+    fn from_line(line: &str) -> Option<Self> {
+        let (name, path) = line.split_once(DELIM)?;
+        Some(Self::new(name, path))
+    }
+
+    /// Serialise back to the line format used in the file.
+    fn to_line(&self) -> String {
+        format!("{}{}{}", self.name, DELIM, self.path)
+    }
+}
+
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -36,11 +61,11 @@ enum Commands {
 }
 
 /// Gets the path to the bookmarks file.
-/// Use the environment variable `WDC_BOOKMARK_FILE` if it's defined.
+/// Use the environment variable BM_ENV if it's defined.
 /// Otherwise, look in the user's home directory for `BM_FILENAME`.
 /// If there is no `HOME` directory, then look in the current directory.
-fn get_bookmark_path() -> PathBuf {
-    env::var("WDC_BOOKMARK_FILE")
+fn bookmark_file_path() -> PathBuf {
+    env::var(BM_ENV)
 	.map(PathBuf::from)
 	.unwrap_or_else(|_| {
 	    env::home_dir()
@@ -50,88 +75,78 @@ fn get_bookmark_path() -> PathBuf {
 	})
 }
 
-/// Open the bookmark file.
-fn open_bookmark_file(mode: FileMode) -> io::Result<File> {
-    let path = get_bookmark_path();
-    let mut options = OpenOptions::new();
-    match mode {
-	FileMode::Read => options.read(true),
-	FileMode::Append => options.append(true).create(true),
-	FileMode::Write => options.write(true).create(true).truncate(true),
-    };
-    match options.open(&path) {
-	Ok(file) => Ok(file),
-	Err(e) => {
-	    eprintln!("Error: Could not open bookmarks file '{}'.", path.display());
-	    Err(e)
-	}
-    }
-}
+/// Load every bookmark in the file, newest → oldest.
+/// Invalid lines are silently ignored.
+fn load_bookmarks<P: AsRef<Path>>(path: P) -> io::Result<Vec<Bookmark>> {
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
 
-/// Add bookmark to file with name and the path separated by DELIM.
-fn add_to_file(name: &str, cwd_path: &str, mut bookmark_file: &File) -> io::Result<()> {
-    writeln!(bookmark_file, "{}{}{}", name, DELIM, cwd_path)
-}
+    let mut bookmarks: Vec<_> = reader
+        .lines()
+        .filter_map(|line| line.ok().and_then(|l| Bookmark::from_line(&l)))
+        .collect();
 
-/// Add bookmark with name, name.
-fn add(name: &str) -> io::Result<()> {
-    let cwd = env::current_dir()?;
-    let bookmark_file = open_bookmark_file(FileMode::Append)?;
-    add_to_file(name, cwd.to_str().unwrap(), &bookmark_file)
-}
-
-fn get_bookmarks() -> io::Result<Vec<String>> {
-    let mut file = open_bookmark_file(FileMode::Read)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-    Ok(contents.lines().map(String::from).collect())
-}
-
-fn get_bookmarks_reversed() -> io::Result<Vec<String>> {
-    let mut bookmarks = get_bookmarks()?;
     bookmarks.reverse();
     Ok(bookmarks)
 }
 
-fn find(needle: &str) -> io::Result<Option<String>> {
-    let bookmarks = get_bookmarks_reversed()?;
-    for bookmark in bookmarks {
-        let parts: Vec<&str> = bookmark.split(DELIM).collect();
-        if parts.len() == 2 && parts[0] == needle {
-            return Ok(Some(parts[1].to_string()));
-        }
-    }
-    Ok(None)
+/// Add a bookmark for the current working directory.
+fn add_bookmark(name: &str) -> io::Result<()> {
+    let path = env::current_dir()?.display().to_string();
+    let bookmark = Bookmark::new(name, path);
+
+    let file_path = bookmark_file_path();
+    let mut file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&file_path)?;
+    writeln!(file, "{}", bookmark.to_line())?;
+    Ok(())
 }
 
-fn pop() -> io::Result<Option<String>> {
-    let mut bookmarks = get_bookmarks_reversed()?;
-    if bookmarks.is_empty() {
-        return Ok(None);
-    }
 
-    let popped_bookmark = bookmarks.remove(0);
-    bookmarks.reverse(); // Write back in original order
-
-    let mut file = open_bookmark_file(FileMode::Write)?;
-    for bookmark in bookmarks {
-        writeln!(file, "{}", bookmark)?;
-    }
-
-    let parts: Vec<&str> = popped_bookmark.split(DELIM).collect();
-    if parts.len() == 2 {
-        Ok(Some(parts[1].to_string()))
-    } else {
-        Ok(None) // Should not happen with well-formed data
-    }
-}
-
+/// List all bookmarks to stdout (newest first).
 fn list_bookmarks() -> io::Result<()> {
-    let bookmarks = get_bookmarks_reversed()?;
-    for bookmark in bookmarks {
-        println!("{}", bookmark);
+    let bookmarks = load_bookmarks(bookmark_file_path())?;
+    for bm in bookmarks {
+        println!("{}{}{}", bm.name, DELIM, bm.path);
     }
     Ok(())
+}
+
+/// Persist the given bookmarks to disk, oldest → newest.
+fn save_bookmarks<P: AsRef<Path>>(path: P, bookmarks: &[Bookmark]) -> io::Result<()> {
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(path)?;
+    for bm in bookmarks.iter().rev() {
+        writeln!(file, "{}", bm.to_line())?;
+    }
+    Ok(())
+}
+
+/// Print the path for the given bookmark name.
+fn find_bookmark(name: &str) -> io::Result<Option<String>> {
+    let bookmarks = load_bookmarks(bookmark_file_path())?;
+    Ok(bookmarks
+        .into_iter()
+        .find(|bm| bm.name == name)
+        .map(|bm| bm.path))
+}
+
+
+/// Remove the newest bookmark and return its path.
+fn pop_bookmark() -> io::Result<Option<String>> {
+    let file_path = bookmark_file_path();
+    let mut bookmarks = load_bookmarks(&file_path)?;
+
+    let popped = bookmarks.first().cloned();
+    bookmarks.remove(0);
+
+    save_bookmarks(file_path, &bookmarks)?;
+    Ok(popped.map(|bm| bm.path))
 }
 
 fn main() {
@@ -139,7 +154,7 @@ fn main() {
 
     match &cli.command {
         Commands::Add { name } => {
-            if let Err(e) = add(name) {
+            if let Err(e) = add_bookmark(name) {
                 eprintln!("Failed to add bookmark: {}", e);
             }
         }
@@ -149,14 +164,14 @@ fn main() {
             }
         }
         Commands::Find { name } => {
-            match find(name) {
+            match find_bookmark(name) {
                 Ok(Some(path)) => println!("{}", path),
                 Ok(None) => println!("Bookmark not found."),
                 Err(e) => eprintln!("Error finding bookmark: {}", e),
             }
         }
         Commands::Pop => {
-            match pop() {
+            match pop_bookmark() {
                 Ok(Some(path)) => println!("{}", path),
                 Ok(None) => println!("No bookmarks to pop."),
                 Err(e) => eprintln!("Error popping bookmark: {}", e),
