@@ -68,10 +68,15 @@ fn bookmark_file_path() -> PathBuf {
     env::var(BM_ENV)
 	.map(PathBuf::from)
 	.unwrap_or_else(|_| {
-	    env::home_dir()
-		.or_else(|| env::current_dir().ok())
-		.unwrap_or_else(|| ".".into())
-		.join(BM_FILENAME)
+	    // Try to use home dir from environment.
+	    let home_dir = env::home_dir();
+	    // Otherwise, use current directory from environment.
+	    let current_dir = env::current_dir().ok();
+	    match (home_dir, current_dir) {
+		(Some(home), _) => home.join(BM_FILENAME),
+		(None, Some(current)) => current.join(BM_FILENAME),
+		(None, None) => ".".into(),
+	    }
 	})
 }
 
