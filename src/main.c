@@ -15,6 +15,7 @@ void print_usage(const char *program_name) {
 
 int main(int argc, char **argv) {
     char *find_name = NULL;
+    char *popped = NULL;
 
     int opt;
     opterr = 0;
@@ -42,7 +43,7 @@ int main(int argc, char **argv) {
 	    }
 	    break;
 	case 'p':
-	    char *popped = pop();
+	    popped = pop();
 	    printf("%s\n", popped);
 	    free(popped);
 	    break;
